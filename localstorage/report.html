@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+    <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
+    
+    <script src="https://jsuites.net/v4/jsuites.js"></script>
+    <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+</head>
+<body>
+    <header>
+        <img id="comp_logo" src="./img/gsacademylogo.png" width="90px" alt="Company_Logo">
+        <div>
+            
+            <label for="rep_id" class="smltxt"> No. <input type="text" id="rep_id" class = "smltxt in_txt" value=""></label>
+            
+            <p id="rep_date" class="smltxt">xxxx/xx/xx</p>
+            
+
+    
+        </div>
+    </header>
+    <h1 id="rep_title">御見積書</h1>
+
+    <div class = "comp_row">
+        <div id="rep_to">
+            <label for="customer" class="smltxt"> <input type="text" id="customer" class = "smltxt in_txt" value="">　御中</label><br>
+            <label for="customer_contact" class="smltxt"> ご担当:<input type="text" id="customer_contact" class = "smltxt in_txt" value="">様</label>
+        </div>
+
+        <div class ="company">
+            <label for="comp_name" class="smltxt"> <input type="text" id="comp_name" class = "smltxt in_txt" value=""></label><br>
+            <label for="comp_addr" class="smltxt"> <textarea type="text" id="comp_addr" class = "smltxt in_txt" value=""></textarea></label><br>
+            <label for="comp_contact" class="smltxt"> (担当:<input type="text" id="comp_contact" class = "smltxt in_txt" value="">)</label>
+            <p id="comp_name">ジーズ商事株式会社</p>
+            <p id="comp_addr">東京都xxxxxxxxxx</p>
+            <p id="comp_contact">安達 裕</p>    
+            <p id="memo"> </p>
+        </div> 
+    </div>
+
+    <p>明細</p>
+
+    <main>
+        <div id="spreadsheet"></div>
+    </main>
+
+    <footer>
+        <div id="stamps">
+            <div class="stamp"></div>
+            <div class="stamp"></div>
+            <div class="stamp"></div>
+
+        </div>
+
+<img src="" alt=""> <img src=" " alt=""> <img src="" alt="">
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/locale/ja.js"></script>
+    <script>
+        //=====================
+        //関数：帳票番号の採番（帳票種別毎にプリフィックス２桁＋８桁の連番）
+        function get_reportID(id_type){
+            const prefix = {
+                quote: "QT",
+                order: "PO"
+            }
+            alert("get repID")
+            let rep_id = Number(localStorage.getItem(id_type));;
+            
+            rep_id++;
+            alert(rep_id)
+            localStorage.setItem(id_type, rep_id);
+            ret_val = prefix[id_type]+String(rep_id).padStart(8, '0')
+            alert(ret_val)
+            return ret_val;
+        }
+
+        //=====================
+        //関数：ローカルストレージへの保存 
+
+        function save_to_localstorage(instance, rep_type){
+            //テーブルデータの取得
+            const line_data = instance.jexcel.getJson();
+
+            //レポートIDの取得（実サインであれば採番関数から取得）
+            let rep_id = $("#rep_id").val();
+           
+            if(!rep_id){
+                rep_id=get_reportID(rep_type);
+                $("#rep_id").val(rep_id);
+            }
+
+            //レポート作成日の取得（毎回上書き）
+            const today = new Date();
+            const yr=today.getFullYear();
+            const mt=today.getMonth()+1;
+            const dt=today.getDate();
+            
+            rep_date = `${yr}年${mt}月${dt}日`;
+            $("#rep_date").text(rep_date);
+
+            //レポート宛先の取得
+            const cust = $("#customer").val(); //宛先会社名
+            const cust_contact = $("#customer_contact").val(); //宛先担当名
+            
+            //会社情報の取得
+            const comp = $("#comp_name").val(); //会社名
+            const comp_addr = $("#comp_addr").val(); //会社住所
+            const comp_contact= $("#comp_contact").val(); //会社担当者
+
+            //保存オブジェクトの作成
+            const rep_data = {
+                report_type: rep_type,
+                header: {
+                    rep_title: "お見積書",
+                    rep_id: rep_id,
+                    rep_date: rep_date,
+                    cust: cust,
+                    cust_contact: cust_contact,
+                    comp: comp,
+                    comp_addr:comp_addr,
+                    comp_contact:comp_contact,
+                    
+                },
+                body_data: line_data
+            }
+
+            //保存オブジェクトの変換（オブジェクト右JSON）
+            const string_val = JSON.stringify(rep_data);
+
+            //ローカルストレージへの保存
+            localStorage.setItem(rep_id, string_val);
+
+        }
+
+        //帳票ID取得のポップアップ
+        const rep_id = prompt('帳票IDを入力してください。（新規の場合はそのままOKを押してください。）');
+
+        //帳票IDをキーにローカルストレージからデータを取得
+        var rep_data = JSON.parse(localStorage.getItem(rep_id));
+
+        //取得データをHTMLフォームに展開（データがあれば展開、なければ空白のまま）
+        if(rep_data){
+            var data = rep_data["body_data"];
+            console.log(rep_data["header"].cust);
+            $("#rep_id").val(rep_id);
+            $("#customer").val(rep_data["header"].cust);
+            $("#customer_contact").val(rep_data["header"].cust_contact);
+            $("#comp_name").val(rep_data["header"].comp);
+            $("#comp_addr").val(rep_data["header"].comp_addr);
+            $("#comp_contact").val(rep_data["header"].comp_contact);
+        }
+        
+        //=====================
+        //jspreadsheet関連の処理
+
+        //関数：テーブルフッターの合計を集計する
+        var SUMCOL = function(instance, columnId) {
+            var total = 0;
+            for (var j = 0; j < instance.options.data.length; j++) {
+                let inner_html_val = Number(instance.records[j][columnId].innerHTML.replace("¥","").replace(",",""));
+                
+                if (inner_html_val!=0) {
+                    total += inner_html_val;
+                }
+            }
+            return "¥"+total.toLocaleString();
+        }
+
+        //関数：jspreadsheet（データテーブル部）内部の処理
+        jspreadsheet(document.getElementById('spreadsheet'), {
+            minDimensions: [6,1],
+            data:data,
+            //フッター定義
+            footers: [
+                [
+                    '',
+                    'Total:',
+                    '',
+                    '',
+                    '',
+                    '=SUMCOL(TABLE(), 5)',
+                    ''
+                ]
+            ],
+            //データカラム定義
+            columns: [
+                {
+                    type: 'dropdown',
+                    title:'品目',
+                    source:['緑茶', '紅茶', 'ウーロン茶', 'ジャスミン茶', 'むぎ茶', '加藤茶'],
+                    width:120
+                },
+                {
+                    type: 'text',
+                    title:'詳細',
+                    width:180,
+                },
+                {
+                    type: 'numeric',
+                    title:'単価',
+                    mask:'#,##',
+                    decimal:'.',
+                    width:90
+                },
+                {
+                    type: 'numeric',
+                    title:'数量',
+                    mask:'#,##',
+                    decimal:'.', 
+                    width:60
+                },
+                {
+                    type: 'dropdown',
+                    title:'単位',
+                    source:['本', 'ケース', 'ダース'],
+                    width:60
+                },
+                {
+                    type: 'numeric',
+                    title:'金額',
+                    mask:'#,##',
+                    width:90,
+                    decimal:'.'
+                }
+            ],
+
+            allowManualInsertRow: true,
+
+            //レコード削除時に削除後のデータセットを更新する
+            ondeleterow: function(instance, cell, c, r, value) {
+                save_to_localstorage(instance, "quote");
+            },
+
+            //レコード変更時に変更後のデータセットを更新する
+            onchange: function(instance, cell, c, r, value) {
+
+                if (c==2 || c==3){
+                    var colName = jexcel.getColumnNameFromId([5, r]);
+                    //alert(colName)
+                    
+                    //console.log(colName,"colName");
+                    instance.jexcel.setValue(colName, `=C${Number(r)+1}*D${Number(r)+1}`, true);
+                }
+
+                save_to_localstorage(instance, "quote");
+
+            }
+
+        });
+        </script>
+</body>
+</html>

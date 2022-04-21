@@ -1,0 +1,100 @@
+body{
+    width: 172mm;
+    height: 251mm;
+    page-break-after: always;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+}
+.jexcel{
+    font-size:11px;
+}
+
+footer {
+    display : flex;
+    justify-content: right;
+}
+#rep_title {
+    text-align: center;
+}
+
+#comp_logo{
+    width: 90px;
+    height: 90px;
+
+
+}
+#rep_date {
+    font-size: smaller;
+    text-align: right;
+}
+.smltxt {
+    font-size: small;
+    margin: 4px 0;
+    
+}
+
+.in_txt{
+    border: none;
+    border-bottom: solid thin black;
+}
+
+#customer {
+    font-size: medium;
+    margin: 4px 0;
+    border: none;
+    border-bottom: solid thin black;
+    text-align: left;
+
+}
+
+#customer_contact{
+    font-size: small;
+    margin: 4px 0;
+}
+
+.comp_row {
+    display: flex;
+    justify-content: space-between;
+    
+    margin: 4px 0;
+    width: 100%;
+}
+
+.company{
+    width: 260px;
+}
+
+.company p{
+    margin: 4px 0;
+
+}
+
+#comp_name {
+    font-size: medium;
+
+}
+#comp_addr {
+    font-size: small;
+    width: 100%;
+}
+
+#comp_contact {
+    font-size: small;
+
+}
+
+#stamps{
+    display : flex;
+    justify-content: space-between;
+
+
+}
+
+.stamp{
+    height: 60px;
+    width: 60px;
+    border: solid thin black;
+}
